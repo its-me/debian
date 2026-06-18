@@ -33,15 +33,16 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: Dockerfile.uv
           load: true
-          tags: debian
+          tags: debian-uv
 
       - name: Check if image exists in GHCR
         id: exist
         run: |
-          hash=$(docker run --rm debian sh -c 'dpkg -l && uv --version' | sha256sum | cut -d' ' -f1)
+          hash=$(docker run --rm debian-uv sh -c 'dpkg -l && uv --version' | sha256sum | cut -d' ' -f1)
           echo "hash=$hash" >> $GITHUB_OUTPUT
-          if docker manifest inspect ghcr.io/${{ github.repository }}:$hash > /dev/null 2>&1; then
+          if docker manifest inspect ghcr.io/${{ github.repository }}:uv-$hash > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -50,10 +51,10 @@ jobs:
       - name: Push image to GHCR
         if: steps.exist.outputs.exist != 'true'
         run: |
-          docker tag debian ghcr.io/${{ github.repository }}:${{ steps.exist.outputs.hash }}
-          docker tag debian ghcr.io/${{ github.repository }}:latest
-          docker push ghcr.io/${{ github.repository }}:${{ steps.exist.outputs.hash }}
-          docker push ghcr.io/${{ github.repository }}:latest
+          docker tag debian-uv ghcr.io/${{ github.repository }}:uv-${{ steps.exist.outputs.hash }}
+          docker tag debian-uv ghcr.io/${{ github.repository }}:uv
+          docker push ghcr.io/${{ github.repository }}:uv-${{ steps.exist.outputs.hash }}
+          docker push ghcr.io/${{ github.repository }}:uv
 
   push-hub:
     name: Publish to Docker Hub
@@ -80,7 +81,7 @@ jobs:
       - name: Check if image exists in Docker Hub
         id: exist
         run: |
-          if docker manifest inspect ${{ secrets.HUB_USERNAME }}/$REPOSITORY:${{ needs.build.outputs.hash }} > /dev/null 2>&1; then
+          if docker manifest inspect ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv-${{ needs.build.outputs.hash }} > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -90,9 +91,9 @@ jobs:
         if: steps.exist.outputs.exist != 'true'
         run: |
           docker buildx imagetools create \
-            --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:${{ needs.build.outputs.hash }} \
-            --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:latest \
-            ghcr.io/${{ github.repository }}:${{ needs.build.outputs.hash }}
+            --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv-${{ needs.build.outputs.hash }} \
+            --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv \
+            ghcr.io/${{ github.repository }}:uv-${{ needs.build.outputs.hash }}
 
   push-quay:
     name: Publish to Quay
@@ -122,7 +123,7 @@ jobs:
         env:
           QUAY_NAMESPACE: ${{ secrets.QUAY_USERNAME }}
         run: |
-          if docker manifest inspect quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:${{ needs.build.outputs.hash }} > /dev/null 2>&1; then
+          if docker manifest inspect quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv-${{ needs.build.outputs.hash }} > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -134,6 +135,6 @@ jobs:
           QUAY_NAMESPACE: ${{ secrets.QUAY_USERNAME }}
         run: |
           docker buildx imagetools create \
-            --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:${{ needs.build.outputs.hash }} \
-            --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:latest \
-            ghcr.io/${{ github.repository }}:${{ needs.build.outputs.hash }}
+            --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv-${{ needs.build.outputs.hash }} \
+            --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv \
+            ghcr.io/${{ github.repository }}:uv-${{ needs.build.outputs.hash }}

@@ -23,11 +23,7 @@ WORKDIR /src/uv
 RUN cargo build --release --locked -p uv
 
 
-FROM debian:stable-slim
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+FROM ghcr.io/its-me/debian:python
 
 COPY --from=builder /src/uv/target/release/uv /usr/local/bin/uv
 

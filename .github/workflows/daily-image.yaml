@@ -39,7 +39,7 @@ jobs:
         run: |
           hash=$(docker run --rm debian-base dpkg -l | sha256sum | cut -d' ' -f1)
           echo "hash=$hash" >> $GITHUB_OUTPUT
-          if docker manifest inspect ghcr.io/${{ github.repository }}:$hash > /dev/null 2>&1; then
+          if docker manifest inspect ghcr.io/its-me/debian:$hash > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -49,13 +49,13 @@ jobs:
         run: |
           date_tag=$(date -u +%y%m%d)
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
-            docker tag debian-base ghcr.io/${{ github.repository }}:${{ steps.exist.outputs.hash }}
-            docker push ghcr.io/${{ github.repository }}:${{ steps.exist.outputs.hash }}
+            docker tag debian-base ghcr.io/its-me/debian:${{ steps.exist.outputs.hash }}
+            docker push ghcr.io/its-me/debian:${{ steps.exist.outputs.hash }}
           fi
           docker buildx imagetools create \
-            --tag ghcr.io/${{ github.repository }}:$date_tag \
-            --tag ghcr.io/${{ github.repository }}:latest \
-            ghcr.io/${{ github.repository }}:${{ steps.exist.outputs.hash }}
+            --tag ghcr.io/its-me/debian:$date_tag \
+            --tag ghcr.io/its-me/debian:latest \
+            ghcr.io/its-me/debian:${{ steps.exist.outputs.hash }}
 
   push-hub-base:
     name: Publish base to Docker Hub
@@ -94,12 +94,12 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:${{ needs.build-base.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:${{ needs.build-base.outputs.hash }}
+              ghcr.io/its-me/debian:${{ needs.build-base.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:$date_tag \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:latest \
-            ghcr.io/${{ github.repository }}:${{ needs.build-base.outputs.hash }}
+            ghcr.io/its-me/debian:${{ needs.build-base.outputs.hash }}
 
   push-quay-base:
     name: Publish base to Quay
@@ -143,12 +143,12 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:${{ needs.build-base.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:${{ needs.build-base.outputs.hash }}
+              ghcr.io/its-me/debian:${{ needs.build-base.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:$date_tag \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:latest \
-            ghcr.io/${{ github.repository }}:${{ needs.build-base.outputs.hash }}
+            ghcr.io/its-me/debian:${{ needs.build-base.outputs.hash }}
 
   build-python:
     name: Build python and push to GHCR
@@ -186,7 +186,7 @@ jobs:
         run: |
           hash=$(docker run --rm debian-python sh -c 'dpkg -l && python3 --version' | sha256sum | cut -d' ' -f1)
           echo "hash=$hash" >> $GITHUB_OUTPUT
-          if docker manifest inspect ghcr.io/${{ github.repository }}:python-$hash > /dev/null 2>&1; then
+          if docker manifest inspect ghcr.io/its-me/debian:python-$hash > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -196,13 +196,13 @@ jobs:
         run: |
           date_tag=$(date -u +%y%m%d)
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
-            docker tag debian-python ghcr.io/${{ github.repository }}:python-${{ steps.exist.outputs.hash }}
-            docker push ghcr.io/${{ github.repository }}:python-${{ steps.exist.outputs.hash }}
+            docker tag debian-python ghcr.io/its-me/debian:python-${{ steps.exist.outputs.hash }}
+            docker push ghcr.io/its-me/debian:python-${{ steps.exist.outputs.hash }}
           fi
           docker buildx imagetools create \
-            --tag ghcr.io/${{ github.repository }}:python-$date_tag \
-            --tag ghcr.io/${{ github.repository }}:python \
-            ghcr.io/${{ github.repository }}:python-${{ steps.exist.outputs.hash }}
+            --tag ghcr.io/its-me/debian:python-$date_tag \
+            --tag ghcr.io/its-me/debian:python \
+            ghcr.io/its-me/debian:python-${{ steps.exist.outputs.hash }}
 
   push-hub-python:
     name: Publish python to Docker Hub
@@ -241,12 +241,12 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:python-${{ needs.build-python.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:python-${{ needs.build-python.outputs.hash }}
+              ghcr.io/its-me/debian:python-${{ needs.build-python.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:python-$date_tag \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:python \
-            ghcr.io/${{ github.repository }}:python-${{ needs.build-python.outputs.hash }}
+            ghcr.io/its-me/debian:python-${{ needs.build-python.outputs.hash }}
 
   push-quay-python:
     name: Publish python to Quay
@@ -290,12 +290,12 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:python-${{ needs.build-python.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:python-${{ needs.build-python.outputs.hash }}
+              ghcr.io/its-me/debian:python-${{ needs.build-python.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:python-$date_tag \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:python \
-            ghcr.io/${{ github.repository }}:python-${{ needs.build-python.outputs.hash }}
+            ghcr.io/its-me/debian:python-${{ needs.build-python.outputs.hash }}
 
   build-uv:
     name: Build uv and push to GHCR
@@ -333,7 +333,7 @@ jobs:
         run: |
           hash=$(docker run --rm debian-uv sh -c 'dpkg -l && uv --version' | sha256sum | cut -d' ' -f1)
           echo "hash=$hash" >> $GITHUB_OUTPUT
-          if docker manifest inspect ghcr.io/${{ github.repository }}:uv-$hash > /dev/null 2>&1; then
+          if docker manifest inspect ghcr.io/its-me/debian:uv-$hash > /dev/null 2>&1; then
             echo "exist=true" >> $GITHUB_OUTPUT
           else
             echo "exist=false" >> $GITHUB_OUTPUT
@@ -343,13 +343,13 @@ jobs:
         run: |
           date_tag=$(date -u +%y%m%d)
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
-            docker tag debian-uv ghcr.io/${{ github.repository }}:uv-${{ steps.exist.outputs.hash }}
-            docker push ghcr.io/${{ github.repository }}:uv-${{ steps.exist.outputs.hash }}
+            docker tag debian-uv ghcr.io/its-me/debian:uv-${{ steps.exist.outputs.hash }}
+            docker push ghcr.io/its-me/debian:uv-${{ steps.exist.outputs.hash }}
           fi
           docker buildx imagetools create \
-            --tag ghcr.io/${{ github.repository }}:uv-$date_tag \
-            --tag ghcr.io/${{ github.repository }}:uv \
-            ghcr.io/${{ github.repository }}:uv-${{ steps.exist.outputs.hash }}
+            --tag ghcr.io/its-me/debian:uv-$date_tag \
+            --tag ghcr.io/its-me/debian:uv \
+            ghcr.io/its-me/debian:uv-${{ steps.exist.outputs.hash }}
 
   push-hub-uv:
     name: Publish uv to Docker Hub
@@ -388,12 +388,12 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv-${{ needs.build-uv.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:uv-${{ needs.build-uv.outputs.hash }}
+              ghcr.io/its-me/debian:uv-${{ needs.build-uv.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv-$date_tag \
             --tag ${{ secrets.HUB_USERNAME }}/$REPOSITORY:uv \
-            ghcr.io/${{ github.repository }}:uv-${{ needs.build-uv.outputs.hash }}
+            ghcr.io/its-me/debian:uv-${{ needs.build-uv.outputs.hash }}
 
   push-quay-uv:
     name: Publish uv to Quay
@@ -437,9 +437,9 @@ jobs:
           if [ "${{ steps.exist.outputs.exist }}" != "true" ]; then
             docker buildx imagetools create \
               --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv-${{ needs.build-uv.outputs.hash }} \
-              ghcr.io/${{ github.repository }}:uv-${{ needs.build-uv.outputs.hash }}
+              ghcr.io/its-me/debian:uv-${{ needs.build-uv.outputs.hash }}
           fi
           docker buildx imagetools create \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv-$date_tag \
             --tag quay.io/${QUAY_NAMESPACE%%+*}/$REPOSITORY:uv \
-            ghcr.io/${{ github.repository }}:uv-${{ needs.build-uv.outputs.hash }}
+            ghcr.io/its-me/debian:uv-${{ needs.build-uv.outputs.hash }}
